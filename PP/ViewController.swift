@@ -34,14 +34,18 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        if let lastDate = storage.value(forKey: "last-date") as? Date, let lastTask = storage.string(forKey: "last-task"), calendar.isDateInToday(lastDate) {
-            taskLabel.text = lastTask
-            let didComplete = storage.bool(forKey: "did-complete")
-            if didComplete {
+        
+        // change these 2
+        let useDailyTask = false // true will lock it for the day
+        let indexFromTheList = Int.random(in: 0..<the_list.count) // use specific index
+        
+        if useDailyTask, let task = getStoredTask() {
+            taskLabel.text = task.task
+            if task.didComplete {
                 self.checkTheBox()
             }
         } else {
-            let newTask = the_list[Int.random(in: 0..<the_list.count)]
+            let newTask = the_list[indexFromTheList]
             taskLabel.text = newTask
             storage.set(newTask, forKey: "last-task")
             storage.set(Date(), forKey: "last-date")
@@ -50,6 +54,18 @@ class ViewController: UIViewController {
         checkBox.layer.borderColor = UIColor.black.cgColor
         checkBox.layer.cornerRadius = 4
         checkBox.clipsToBounds = true
+    }
+    
+    struct Task {
+        let task: String
+        let didComplete: Bool
+    }
+    
+    private func getStoredTask() -> Task? {
+        if let lastDate = storage.value(forKey: "last-date") as? Date, let lastTask = storage.string(forKey: "last-task"), calendar.isDateInToday(lastDate) {
+            let didComplete = storage.bool(forKey: "did-complete")
+            return Task(task: lastTask, didComplete: didComplete)
+        } else { return nil }
     }
     
     override func viewDidAppear(_ animated: Bool) {
